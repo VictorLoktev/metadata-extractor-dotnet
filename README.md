@@ -1,8 +1,9 @@
 ![metadata-extractor logo](https://cdn.rawgit.com/drewnoakes/metadata-extractor/master/Resources/metadata-extractor-logo.svg)
 
+[![Build Status](https://dev.azure.com/metadata-extractor/metadata-extractor-dotnet/_apis/build/status/drewnoakes.metadata-extractor-dotnet?branchName=master)](https://dev.azure.com/metadata-extractor/metadata-extractor-dotnet/_build/latest?definitionId=1&branchName=master)
 [![Build status](https://ci.appveyor.com/api/projects/status/90hfuleg8wj8r956?svg=true)](https://ci.appveyor.com/project/drewnoakes/metadata-extractor-dotnet)
 [![MetadataExtractor NuGet version](https://img.shields.io/nuget/v/MetadataExtractor.svg)](https://www.nuget.org/packages/MetadataExtractor/)
-[![MetadataExtractor NuGet pre-release version](https://img.shields.io/nuget/vpre/MetadataExtractor.svg)](https://www.nuget.org/packages/MetadataExtractor/)
+<!--[![MetadataExtractor NuGet pre-release version](https://img.shields.io/nuget/vpre/MetadataExtractor.svg)](https://www.nuget.org/packages/MetadataExtractor/)-->
 
 _MetadataExtractor_ is a straightforward .NET library for reading metadata from image and movie files.
 
@@ -128,6 +129,10 @@ All target frameworks are provided via the [one NuGet package](https://www.nuget
 `netstandard1.3` implements version 1.3 of the [.NET Standard](https://docs.microsoft.com/en-us/dotnet/articles/standard/library) which covers .NET Core, Mono, Xamarin platforms, UWP, and future platforms. 
 
 A PCL build was supported until [version 1.5.3](https://www.nuget.org/packages/MetadataExtractor/1.5.3) which supported Silverlight 5.0, Windows 8.0, Windows Phone 8.1 and Windows Phone Silverlight 8.0. PCL versions did not support file-system metadata due to restricted IO APIs.
+
+## Building
+
+If using Visual Studio to compile this repo, ensure you have the _.NET Core Development Tools_ workload installed. This can be verified and corrected using the Visual Studio Installer in VS2017 and later.
 
 ## Questions & Feedback
 

@@ -1,30 +1,7 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Text;
-using JetBrains.Annotations;
 
 // TODO always read bytes in order which may assist memory read patterns
 
@@ -82,7 +59,6 @@ namespace MetadataExtractor.IO
         /// <exception cref="System.ArgumentException"><c>index</c> or <c>count</c> are negative</exception>
         /// <exception cref="BufferBoundsException">if the requested bytes extend beyond the end of the underlying data source</exception>
         /// <exception cref="System.IO.IOException">if the byte is unable to be read</exception>
-        [NotNull]
         public abstract byte[] GetBytes(int index, int count);
 
         /// <summary>
@@ -309,8 +285,7 @@ namespace MetadataExtractor.IO
         public double GetDouble64(int index) => BitConverter.Int64BitsToDouble(GetInt64(index));
 
         /// <exception cref="System.IO.IOException"/>
-        [NotNull]
-        public string GetString(int index, int bytesRequested, [NotNull] Encoding encoding)
+        public string GetString(int index, int bytesRequested, Encoding encoding)
         {
             var bytes = GetBytes(index, bytesRequested);
             return encoding.GetString(bytes, 0, bytes.Length);
@@ -328,8 +303,7 @@ namespace MetadataExtractor.IO
         /// <param name="encoding">An optional string encoding. If none is provided, <see cref="Encoding.UTF8"/> is used.</param>
         /// <returns>The read <see cref="string"/></returns>
         /// <exception cref="System.IO.IOException">The buffer does not contain enough bytes to satisfy this request.</exception>
-        [NotNull]
-        public string GetNullTerminatedString(int index, int maxLengthBytes, Encoding encoding = null)
+        public string GetNullTerminatedString(int index, int maxLengthBytes, Encoding? encoding = null)
         {
             var bytes = GetNullTerminatedBytes(index, maxLengthBytes);
 
@@ -348,7 +322,7 @@ namespace MetadataExtractor.IO
         /// <param name="encoding">An optional string encoding to use when interpreting bytes.</param>
         /// <returns>The read <see cref="StringValue"/></returns>
         /// <exception cref="System.IO.IOException">The buffer does not contain enough bytes to satisfy this request.</exception>
-        public StringValue GetNullTerminatedStringValue(int index, int maxLengthBytes, Encoding encoding = null)
+        public StringValue GetNullTerminatedStringValue(int index, int maxLengthBytes, Encoding? encoding = null)
         {
             var bytes = GetNullTerminatedBytes(index, maxLengthBytes);
 
@@ -365,7 +339,6 @@ namespace MetadataExtractor.IO
         /// </param>
         /// <returns>The read byte array.</returns>
         /// <exception cref="System.IO.IOException">The buffer does not contain enough bytes to satisfy this request.</exception>
-        [NotNull]
         public byte[] GetNullTerminatedBytes(int index, int maxLengthBytes)
         {
             var buffer = GetBytes(index, maxLengthBytes);

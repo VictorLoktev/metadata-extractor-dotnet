@@ -1,32 +1,9 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using MetadataExtractor.Formats.Exif;
 using MetadataExtractor.Formats.Icc;
 using MetadataExtractor.Formats.Iptc;
@@ -65,8 +42,7 @@ namespace MetadataExtractor.Formats.Photoshop
                 .ToList();
         }
 
-        [NotNull]
-        public DirectoryList Extract([NotNull] SequentialReader reader, int length)
+        public DirectoryList Extract(SequentialReader reader, int length)
         {
             var directory = new PhotoshopDirectory();
 
@@ -82,6 +58,7 @@ namespace MetadataExtractor.Formats.Photoshop
             //
             // http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_pgfId-1037504
             var pos = 0;
+            int clippingPathCount = 0;
             while (pos < length)
             {
                 try
@@ -102,9 +79,15 @@ namespace MetadataExtractor.Formats.Photoshop
                     if (descriptionLength + pos > length)
                         throw new ImageProcessingException("Invalid string length");
 
-                    // We don't use the string value here
-                    reader.Skip(descriptionLength);
-                    pos += descriptionLength;
+                    // Get name (important for paths)
+                    var description = new StringBuilder();
+                    // Loop through each byte and append to string
+                    while (descriptionLength > 0)
+                    {
+                        description.Append((char)reader.GetByte());
+                        pos++;
+                        descriptionLength--;
+                    }
 
                     // The number of bytes is padded with a trailing zero, if needed, to make the size even.
                     if (pos % 2 != 0)
@@ -157,7 +140,23 @@ namespace MetadataExtractor.Formats.Photoshop
                             directories.Add(xmpDirectory);
                             break;
                         default:
-                            directory.Set(tagType, tagBytes);
+                            if (tagType >= PhotoshopDirectory.TagClippingPathBlockStart && tagType <= PhotoshopDirectory.TagClippingPathBlockEnd)
+                            {
+                                clippingPathCount++;
+                                Array.Resize(ref tagBytes, tagBytes.Length + description.Length + 1);
+                                // Append description(name) to end of byte array with 1 byte before the description representing the length
+                                for (int i = tagBytes.Length - description.Length - 1; i < tagBytes.Length; i++)
+                                {
+                                    if (i % (tagBytes.Length - description.Length - 1 + description.Length) == 0)
+                                        tagBytes[i] = (byte)description.Length;
+                                    else
+                                        tagBytes[i] = (byte)description[i - (tagBytes.Length - description.Length - 1)];
+                                }
+                                PhotoshopDirectory.TagNameMap[PhotoshopDirectory.TagClippingPathBlockStart + clippingPathCount - 1] = "Path Info " + clippingPathCount;
+                                directory.Set(PhotoshopDirectory.TagClippingPathBlockStart + clippingPathCount - 1, tagBytes);
+                            }
+                            else
+                                directory.Set(tagType, tagBytes);
                             break;
                     }
 

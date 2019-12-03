@@ -1,29 +1,6 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Text;
-using JetBrains.Annotations;
 using MetadataExtractor.Formats.Exif.Makernotes;
 
 namespace MetadataExtractor
@@ -39,7 +16,7 @@ namespace MetadataExtractor
     /// <author>Philipp Sandhaus, Drew Noakes</author>
     public sealed class Face
     {
-        public Face(int x, int y, int width, int height, [CanBeNull] string name = null, [CanBeNull] Age age = null)
+        public Face(int x, int y, int width, int height, string? name = null, Age? age = null)
         {
             X = x;
             Y = y;
@@ -57,22 +34,20 @@ namespace MetadataExtractor
 
         public int Height { get; }
 
-        [CanBeNull]
-        public string Name { get; }
+        public string? Name { get; }
 
-        [CanBeNull]
-        public Age Age { get; }
+        public Age? Age { get; }
 
         #region Equality and hashing
 
-        private bool Equals([NotNull] Face other)
+        private bool Equals(Face other)
         {
             return X == other.X && Y == other.Y && Width == other.Width && Height == other.Height && string.Equals(Name, other.Name) && Equals(Age, other.Age);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
                 return false;
             if (ReferenceEquals(this, obj))
                 return true;

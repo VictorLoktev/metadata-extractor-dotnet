@@ -1,29 +1,6 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using MetadataExtractor.IO;
 
 namespace MetadataExtractor.Formats.Tiff
@@ -53,52 +30,52 @@ namespace MetadataExtractor.Formats.Tiff
         void EndingIfd();
 
         /// <exception cref="System.IO.IOException"/>
-        bool CustomProcessTag(int tagOffset, [NotNull] ICollection<int> processedIfdOffsets, [NotNull] IndexedReader reader, int tagId, int byteCount);
+        bool CustomProcessTag(int tagOffset, ICollection<int> processedIfdOffsets, IndexedReader reader, int tagId, int byteCount);
 
         bool TryCustomProcessFormat(int tagId, TiffDataFormatCode formatCode, uint componentCount, out long byteCount);
 
-        void Warn([NotNull] string message);
+        void Warn(string message);
 
-        void Error([NotNull] string message);
+        void Error(string message);
 
-        void SetByteArray(int tagId, [NotNull] byte[] bytes);
+        void SetByteArray(int tagId, byte[] bytes);
 
         void SetString(int tagId, StringValue str);
 
         void SetRational(int tagId, Rational rational);
 
-        void SetRationalArray(int tagId, [NotNull] Rational[] array);
+        void SetRationalArray(int tagId, Rational[] array);
 
         void SetFloat(int tagId, float float32);
 
-        void SetFloatArray(int tagId, [NotNull] float[] array);
+        void SetFloatArray(int tagId, float[] array);
 
         void SetDouble(int tagId, double double64);
 
-        void SetDoubleArray(int tagId, [NotNull] double[] array);
+        void SetDoubleArray(int tagId, double[] array);
 
         void SetInt8S(int tagId, sbyte int8S);
 
-        void SetInt8SArray(int tagId, [NotNull] sbyte[] array);
+        void SetInt8SArray(int tagId, sbyte[] array);
 
         void SetInt8U(int tagId, byte int8U);
 
-        void SetInt8UArray(int tagId, [NotNull] byte[] array);
+        void SetInt8UArray(int tagId, byte[] array);
 
         void SetInt16S(int tagId, short int16S);
 
-        void SetInt16SArray(int tagId, [NotNull] short[] array);
+        void SetInt16SArray(int tagId, short[] array);
 
         void SetInt16U(int tagId, ushort int16U);
 
-        void SetInt16UArray(int tagId, [NotNull] ushort[] array);
+        void SetInt16UArray(int tagId, ushort[] array);
 
         void SetInt32S(int tagId, int int32S);
 
-        void SetInt32SArray(int tagId, [NotNull] int[] array);
+        void SetInt32SArray(int tagId, int[] array);
 
         void SetInt32U(int tagId, uint int32U);
 
-        void SetInt32UArray(int tagId, [NotNull] uint[] array);
+        void SetInt32UArray(int tagId, uint[] array);
     }
 }

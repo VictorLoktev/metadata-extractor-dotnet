@@ -1,31 +1,8 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using JetBrains.Annotations;
 using MetadataExtractor.Formats.Icc;
 using MetadataExtractor.Formats.Xmp;
 using MetadataExtractor.IO;
@@ -54,8 +31,7 @@ namespace MetadataExtractor.Formats.Gif
         private const string Gif87AVersionIdentifier = "87a";
         private const string Gif89AVersionIdentifier = "89a";
 
-        [NotNull]
-        public DirectoryList Extract([NotNull] SequentialReader reader)
+        public DirectoryList Extract(SequentialReader reader)
         {
             reader = reader.WithByteOrder(isMotorolaByteOrder: false);
 
@@ -81,11 +57,18 @@ namespace MetadataExtractor.Formats.Gif
             if (header.HasError)
                 yield break;
 
-            // Skip over any global colour table
-            if (header.TryGetInt32(GifHeaderDirectory.TagColorTableSize, out int globalColorTableSize))
+            if (header.TryGetBoolean(GifHeaderDirectory.TagHasGlobalColorTable, out bool hasGlobalColorTable))
             {
-                // Colour table has R/G/B byte triplets
-                reader.Skip(3 * globalColorTableSize);
+                // Skip over any global colour table
+                if (hasGlobalColorTable && header.TryGetInt32(GifHeaderDirectory.TagColorTableSize, out int globalColorTableSize))
+                {
+                    // Colour table has R/G/B byte triplets
+                    reader.Skip(3 * globalColorTableSize);
+                }
+            }
+            else
+            {
+                yield return new ErrorDirectory("GIF did not have hasGlobalColorTable bit.");
             }
 
             // After the header comes a sequence of blocks
@@ -105,12 +88,14 @@ namespace MetadataExtractor.Formats.Gif
                 {
                     case (byte)'!': // 0x21
                     {
-                        yield return ReadGifExtensionBlock(reader);
+                        var extBlock = ReadGifExtensionBlock(reader);
+                        if (extBlock != null) yield return extBlock;
                         break;
                     }
                     case (byte)',': // 0x2c
                     {
-                        yield return ReadImageBlock(reader);
+                        var imageBlock = ReadImageBlock(reader);
+                        if (imageBlock != null) yield return imageBlock;
 
                         // skip image data blocks
                         SkipBlocks(reader);
@@ -127,6 +112,7 @@ namespace MetadataExtractor.Formats.Gif
                         // Anything other than these types is unexpected.
                         // GIF87a spec says to keep reading until a separator is found.
                         // GIF89a spec says file is corrupt.
+                        yield return new ErrorDirectory("Unknown GIF block marker found.");
                         yield break;
                     }
                 }
@@ -181,7 +167,7 @@ namespace MetadataExtractor.Formats.Gif
             // First three bits = (BPP - 1)
             var colorTableSize = 1 << ((flags & 7) + 1);
             var bitsPerPixel = ((flags & 0x70) >> 4) + 1;
-            var hasGlobalColorTable = (flags & 0xf) != 0;
+            var hasGlobalColorTable = (flags >> 7) != 0;
 
             headerDirectory.Set(GifHeaderDirectory.TagColorTableSize, colorTableSize);
 
@@ -206,13 +192,13 @@ namespace MetadataExtractor.Formats.Gif
             return headerDirectory;
         }
 
-        private static Directory ReadGifExtensionBlock(SequentialReader reader)
+        private static Directory? ReadGifExtensionBlock(SequentialReader reader)
         {
             var extensionLabel = reader.GetByte();
             var blockSizeBytes = reader.GetByte();
             var blockStartPos = reader.Position;
 
-            Directory directory;
+            Directory? directory;
             switch (extensionLabel)
             {
                 case 0x01:
@@ -249,7 +235,7 @@ namespace MetadataExtractor.Formats.Gif
             return directory;
         }
 
-        private static Directory ReadPlainTextBlock(SequentialReader reader, byte blockSizeBytes)
+        private static Directory? ReadPlainTextBlock(SequentialReader reader, byte blockSizeBytes)
         {
             // It seems this extension is deprecated. If somebody finds an image with this in it, could implement here.
             // Just skip the entire block for now.
@@ -272,8 +258,7 @@ namespace MetadataExtractor.Formats.Gif
             return new GifCommentDirectory(new StringValue(buffer, Encoding.ASCII));
         }
 
-        [CanBeNull]
-        private static Directory ReadApplicationExtensionBlock(SequentialReader reader, byte blockSizeBytes)
+        private static Directory? ReadApplicationExtensionBlock(SequentialReader reader, byte blockSizeBytes)
         {
             if (blockSizeBytes != 11)
                 return new ErrorDirectory($"Invalid GIF application extension block size. Expected 11, got {blockSizeBytes}.");
@@ -286,7 +271,11 @@ namespace MetadataExtractor.Formats.Gif
                 {
                     // XMP data extension
                     var xmpBytes = GatherBytes(reader);
-                    return new XmpReader().Extract(xmpBytes, 0, xmpBytes.Length - 257);
+                    int xmpLength = xmpBytes.Length - 257; // Exclude the "magic trailer", see XMP Specification Part 3, 1.1.2 GIF
+                    // Only extract valid blocks
+                    return xmpLength > 0
+                        ? new XmpReader().Extract(xmpBytes, 0, xmpBytes.Length - 257)
+                        : null;
                 }
                 case "ICCRGBG1012":
                 {
@@ -323,15 +312,15 @@ namespace MetadataExtractor.Formats.Gif
 
             var directory = new GifControlDirectory();
 
-            reader.Skip(1);
-
+            byte packedFields = reader.GetByte();
+            directory.Set(GifControlDirectory.TagDisposalMethod, (packedFields >> 2) & 7);
+            directory.Set(GifControlDirectory.TagUserInputFlag, (packedFields & 2) == 2);
+            directory.Set(GifControlDirectory.TagTransparentColorFlag, (packedFields & 1) == 1);
             directory.Set(GifControlDirectory.TagDelay, reader.GetUInt16());
-
-            if (blockSizeBytes > 3)
-                reader.Skip(blockSizeBytes - 3);
+            directory.Set(GifControlDirectory.TagTransparentColorIndex, reader.GetByte());
 
             // skip 0x0 block terminator
-            reader.GetByte();
+            reader.Skip(1);
 
             return directory;
         }
@@ -346,15 +335,15 @@ namespace MetadataExtractor.Formats.Gif
             imageDirectory.Set(GifImageDirectory.TagHeight, reader.GetUInt16());
 
             var flags = reader.GetByte();
-            var hasColorTable = (flags & 0x7) != 0;
+            var hasColorTable = (flags >> 7) != 0;
             var isInterlaced = (flags & 0x40) != 0;
-            var isColorTableSorted = (flags & 0x20) != 0;
 
             imageDirectory.Set(GifImageDirectory.TagHasLocalColourTable, hasColorTable);
             imageDirectory.Set(GifImageDirectory.TagIsInterlaced, isInterlaced);
 
             if (hasColorTable)
             {
+                var isColorTableSorted = (flags & 0x20) != 0;
                 imageDirectory.Set(GifImageDirectory.TagIsColorTableSorted, isColorTableSorted);
 
                 var bitsPerPixel = (flags & 0x7) + 1;

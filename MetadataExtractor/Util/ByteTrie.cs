@@ -1,33 +1,10 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Util
 {
@@ -40,7 +17,7 @@ namespace MetadataExtractor.Util
         {
             public readonly IDictionary<byte, ByteTrieNode> Children = new Dictionary<byte, ByteTrieNode>();
 
-            public T Value { get; private set; }
+            public T Value { get; private set; } = default!;
             public bool HasValue { get; private set; }
 
             public void SetValue(T value)
@@ -65,9 +42,9 @@ namespace MetadataExtractor.Util
         /// If not found, returns <c>null</c> or a default values as specified by
         /// calling <see cref="SetDefaultValue"/>.
         /// </remarks>
-        [CanBeNull]
+        [return: MaybeNull]
         [SuppressMessage("ReSharper", "ParameterTypeCanBeEnumerable.Global")]
-        public T Find([NotNull] byte[] bytes)
+        public T Find(byte[] bytes)
         {
             var node = _root;
             var value = node.Value;
@@ -82,7 +59,7 @@ namespace MetadataExtractor.Util
         }
 
         /// <summary>Store the given value at the specified path.</summary>
-        public void Add(T value, [NotNull] params byte[][] parts)
+        public void Add(T value, params byte[][] parts)
         {
             var depth = 0;
             var node = _root;
@@ -109,6 +86,7 @@ namespace MetadataExtractor.Util
         public void SetDefaultValue(T defaultValue) => _root.SetValue(defaultValue);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
+
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
     }
 }

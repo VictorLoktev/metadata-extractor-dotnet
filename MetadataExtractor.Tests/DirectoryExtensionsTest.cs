@@ -1,25 +1,4 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,7 +14,7 @@ namespace MetadataExtractor.Tests
         [Fact]
         public void Int32Tests()
         {
-            void AssertPresentInt32(Directory dictionary, int i)
+            static void AssertPresentInt32(Directory dictionary, int i)
             {
                 Assert.Equal(i, dictionary.GetInt32(i));
                 Assert.True(dictionary.TryGetInt32(i, out int _));
@@ -55,7 +34,7 @@ namespace MetadataExtractor.Tests
         [Fact]
         public void Int64Tests()
         {
-            void AssertPresentInt64(Directory dictionary, int i)
+            static void AssertPresentInt64(Directory dictionary, int i)
             {
                 Assert.Equal(i, dictionary.GetInt64(i));
                 Assert.True(dictionary.TryGetInt64(i, out long _));
@@ -75,7 +54,7 @@ namespace MetadataExtractor.Tests
         [Fact]
         public void SingleTests()
         {
-            void AssertPresentSingle(Directory dictionary, int i)
+            static void AssertPresentSingle(Directory dictionary, int i)
             {
                 Assert.Equal(i, dictionary.GetSingle(i));
                 Assert.True(dictionary.TryGetSingle(i, out float _));
@@ -95,7 +74,7 @@ namespace MetadataExtractor.Tests
         [Fact]
         public void DoubleTests()
         {
-            void AssertPresentDouble(Directory dictionary, int i)
+            static void AssertPresentDouble(Directory dictionary, int i)
             {
                 Assert.Equal(i, dictionary.GetDouble(i));
                 Assert.True(dictionary.TryGetDouble(i, out double _));
@@ -115,14 +94,14 @@ namespace MetadataExtractor.Tests
         [Fact]
         public void BooleanTests()
         {
-            void AssertPresentTrueBoolean(Directory dictionary, int i)
+            static void AssertPresentTrueBoolean(Directory dictionary, int i)
             {
                 Assert.True(dictionary.GetBoolean(i));
                 Assert.True(dictionary.TryGetBoolean(i, out bool _));
                 Assert.True(dictionary.GetBoolean(i));
             }
 
-            void AssertPresentFalseBoolean(Directory dictionary, int i)
+            static void AssertPresentFalseBoolean(Directory dictionary, int i)
             {
                 Assert.False(dictionary.GetBoolean(i));
                 Assert.True(dictionary.TryGetBoolean(i, out bool _));

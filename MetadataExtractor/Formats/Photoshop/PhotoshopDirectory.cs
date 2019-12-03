@@ -1,31 +1,8 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Formats.Photoshop
 {
@@ -116,15 +93,23 @@ namespace MetadataExtractor.Formats.Photoshop
         public const int TagAutoSaveFormat = 0x043F;
         public const int TagPathSelectionState = 0x0440;
         // CLIPPING PATHS                                                               0x07D0 -> 0x0BB6
+        // convenience constants of the clipping path block of codes to avoid using the hex in code
+        public const int TagClippingPathBlockStart = 0x07D0;
+        public const int TagClippingPathBlockEnd = 0x0BB6;
+
         public const int TagClippingPathName = 0x0BB7;
         public const int TagOriginPathInfo = 0x0BB8;
         // PLUG IN RESOURCES                                                            0x0FA0 -> 0x1387
         public const int TagImageReadyVariablesXml = 0x1B58;
         public const int TagImageReadyDataSets = 0x1B59;
+        public const int TagImageReadySelectedState = 0x1B5A;
+        public const int TagImageReady7Rollover = 0x1B5B;
+        public const int TagImageReadyRollover = 0x1B5C;
+        public const int TagImageReadySaveLayerSettings = 0x1B5D;
+        public const int TagImageReadyVersion = 0x1B5E;
         public const int TagLightroomWorkflow = 0x1F40;
         public const int TagPrintFlagsInfo = 0x2710;
 
-        [NotNull]
         internal static readonly Dictionary<int, string> TagNameMap = new Dictionary<int, string>
         {
             { TagChannelsRowsColumnsDepthMode, "Channels, Rows, Columns, Depth, Mode" },
@@ -201,11 +186,18 @@ namespace MetadataExtractor.Formats.Photoshop
             { TagWinDevmode, "Win DEVMODE" },
             { TagAutoSaveFilePath, "Auto Save File Path" },
             { TagAutoSaveFormat, "Auto Save Format" },
-            { TagPathSelectionState, "Path Selection State" },
+            { TagPathSelectionState, "Subpath Selection State" },
             { TagClippingPathName, "Clipping Path Name" },
-            { TagOriginPathInfo, "Origin Path Info" },
+            { TagOriginPathInfo, "Origin Subpath Info" },
             { TagImageReadyVariablesXml, "Image Ready Variables XML" },
             { TagImageReadyDataSets, "Image Ready Data Sets" },
+
+            { TagImageReadySelectedState, "Image Ready Selected State" },
+            { TagImageReady7Rollover, "Image Ready 7 Rollover Expanded State" },
+            { TagImageReadyRollover, "Image Ready Rollover Expanded State" },
+            { TagImageReadySaveLayerSettings, "Image Ready Save Layer Settings" },
+            { TagImageReadyVersion, "Image Ready Version" },
+
             { TagLightroomWorkflow, "Lightroom Workflow" },
             { TagPrintFlagsInfo, "Print Flags Information" }
         };
@@ -222,8 +214,7 @@ namespace MetadataExtractor.Formats.Photoshop
             return TagNameMap.TryGetValue(tagType, out tagName);
         }
 
-        [CanBeNull]
-        public byte[] GetThumbnailBytes()
+        public byte[]? GetThumbnailBytes()
         {
             var storedBytes = this.GetByteArray(TagThumbnail) ?? this.GetByteArray(TagThumbnailOld);
 

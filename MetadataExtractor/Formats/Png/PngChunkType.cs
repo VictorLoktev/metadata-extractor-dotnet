@@ -1,26 +1,4 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -130,9 +108,9 @@ namespace MetadataExtractor.Formats.Png
 
         #endregion
 
-        [NotNull] private readonly byte[] _bytes;
+        private readonly byte[] _bytes;
 
-        public PngChunkType([NotNull] string identifier, bool multipleAllowed = false)
+        public PngChunkType(string identifier, bool multipleAllowed = false)
         {
             AreMultipleAllowed = multipleAllowed;
             var bytes = Encoding.UTF8.GetBytes(identifier);
@@ -140,7 +118,7 @@ namespace MetadataExtractor.Formats.Png
             _bytes = bytes;
         }
 
-        public PngChunkType([NotNull] byte[] bytes)
+        public PngChunkType(byte[] bytes)
         {
             ValidateBytes(bytes);
             _bytes = bytes;
@@ -148,7 +126,7 @@ namespace MetadataExtractor.Formats.Png
         }
 
         [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-        private static void ValidateBytes([NotNull] byte[] bytes)
+        private static void ValidateBytes(byte[] bytes)
         {
             if (bytes.Length != 4)
                 throw new ArgumentException("PNG chunk type identifier must be four bytes in length");
@@ -175,18 +153,17 @@ namespace MetadataExtractor.Formats.Png
         [Pure]
         private static bool IsValidByte(byte b) => (b >= 65 && b <= 90) || (b >= 97 && b <= 122);
 
-        [NotNull]
         public string Identifier => Encoding.UTF8.GetString(_bytes, 0, _bytes.Length);
 
         public override string ToString() => Identifier;
 
         #region Equality and Hashing
 
-        private bool Equals([NotNull] PngChunkType other) => _bytes.SequenceEqual(other._bytes);
+        private bool Equals(PngChunkType other) => _bytes.SequenceEqual(other._bytes);
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
                 return false;
             if (ReferenceEquals(this, obj))
                 return true;

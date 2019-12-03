@@ -24,13 +24,13 @@ $instance = .\packages\vswhere\tools\vswhere.exe -latest -products $ids -require
           | convertfrom-json `
           | select-object -first 1
 
-$msbuild = join-path $instance.installationPath 'MSBuild\15.0\Bin\MSBuild.exe'
+$msbuild = join-path $instance.installationPath 'MSBuild\Current\Bin\MSBuild.exe'
 if ((test-path $msbuild) -eq $false) {
     Write-Error "Could not find msbuild."
     exit 2
 }
 
 &$msbuild MetadataExtractor\MetadataExtractor.csproj /t:Restore,Build,Pack /p:Configuration=Release /p:PackageOutputPath=..\artifacts
-&$msbuild MetadataExtractor\MetadataExtractor.csproj /t:Restore,Build,Pack /p:Configuration=Release /p:PackageOutputPath=..\artifacts /p:Signed=True
+&$msbuild MetadataExtractor\MetadataExtractor.csproj /t:Restore,Build,Pack /p:Configuration=Release /p:PackageOutputPath=..\artifacts /p:Signed=True /p:PackageId=MetadataExtractor.StrongName
 
 Pop-Location

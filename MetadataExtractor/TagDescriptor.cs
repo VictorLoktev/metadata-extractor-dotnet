@@ -1,30 +1,8 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using JetBrains.Annotations;
 using MetadataExtractor.Util;
@@ -40,10 +18,9 @@ namespace MetadataExtractor
     public class TagDescriptor<T> : ITagDescriptor
         where T : Directory
     {
-        [NotNull]
         protected readonly T Directory;
 
-        public TagDescriptor([NotNull] T directory)
+        public TagDescriptor(T directory)
         {
             Directory = directory;
         }
@@ -59,15 +36,15 @@ namespace MetadataExtractor
         /// a description of the image's value for the specified tag, or
         /// <c>null</c> if the tag hasn't been defined.
         /// </returns>
-        public virtual string GetDescription(int tagType)
+        public virtual string? GetDescription(int tagType)
         {
             var obj = Directory.GetObject(tagType);
             if (obj == null)
                 return null;
 
             // special presentation for long arrays
-            if (obj is Array array && array.Length > 16)
-                return $"[{array.Length} {(array.Length == 1 ? "value" : "values")}]";
+            if (obj is ICollection collection && collection.Count > 16)
+                return $"[{collection.Count} values]";
 
             // no special handling required, so use default conversion to a string
             return Directory.GetString(tagType);
@@ -80,21 +57,21 @@ namespace MetadataExtractor
         /// <remarks>
         /// Two different formats are processed:
         /// <list type="bullet">
-        /// <item>[30 32 31 30] -&gt; 2.10</item>
-        /// <item>[0 1 0 0] -&gt; 1.00</item>
+        /// <item>[0x30 0x32 0x31 0x30] ⇒ 2.10</item>
+        /// <item>[0 1 0 0] ⇒ 1.00</item>
         /// </list>
         /// </remarks>
         /// <param name="components">the four version values</param>
         /// <param name="majorDigits">the number of components to be</param>
         /// <returns>the version as a string of form "2.10" or null if the argument cannot be converted</returns>
         [Pure]
-        [CanBeNull]
-        public static string ConvertBytesToVersionString([CanBeNull] int[] components, int majorDigits)
+        public static string? ConvertBytesToVersionString(int[]? components, int majorDigits)
         {
             if (components == null)
                 return null;
 
             var version = new StringBuilder();
+
             for (var i = 0; i < 4 && i < components.Length; i++)
             {
                 if (i == majorDigits)
@@ -106,27 +83,28 @@ namespace MetadataExtractor
                     continue;
                 version.Append(c);
             }
+
+            if (version.Length == 0)
+                return null;
+
             return version.ToString();
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetVersionBytesDescription(int tagType, int majorDigits)
+        protected string? GetVersionBytesDescription(int tagType, int majorDigits)
         {
             var values = Directory.GetInt32Array(tagType);
             return values == null ? null : ConvertBytesToVersionString(values, majorDigits);
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetIndexedDescription(int tagType, [NotNull] params string[] descriptions)
+        protected string? GetIndexedDescription(int tagType, params string?[] descriptions)
         {
             return GetIndexedDescription(tagType, 0, descriptions);
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetIndexedDescription(int tagType, int baseIndex, [NotNull] params string[] descriptions)
+        protected string? GetIndexedDescription(int tagType, int baseIndex, params string?[] descriptions)
         {
             if (!Directory.TryGetUInt32(tagType, out uint index))
                 return null;
@@ -144,8 +122,18 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetByteLengthDescription(int tagType)
+        protected string? GetBooleanDescription(int tagType, string trueValue, string falseValue)
+        {
+            if (!Directory.TryGetBoolean(tagType, out var value))
+                return null;
+
+            return value
+                ? trueValue
+                : falseValue;
+        }
+
+        [Pure]
+        protected string? GetByteLengthDescription(int tagType)
         {
             var bytes = Directory.GetByteArray(tagType);
             if (bytes == null)
@@ -154,8 +142,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetSimpleRational(int tagType)
+        protected string? GetSimpleRational(int tagType)
         {
             if (!Directory.TryGetRational(tagType, out Rational value))
                 return null;
@@ -163,8 +150,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetDecimalRational(int tagType, int decimalPlaces)
+        protected string? GetDecimalRational(int tagType, int decimalPlaces)
         {
             if (!Directory.TryGetRational(tagType, out Rational value))
                 return null;
@@ -172,8 +158,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetFormattedInt(int tagType, [NotNull] string format)
+        protected string? GetFormattedInt(int tagType, string format)
         {
             if (!Directory.TryGetInt32(tagType, out int value))
                 return null;
@@ -181,8 +166,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetFormattedString(int tagType, [NotNull] string format)
+        protected string? GetFormattedString(int tagType, string format)
         {
             var value = Directory.GetString(tagType);
             if (value == null)
@@ -191,8 +175,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetEpochTimeDescription(int tagType)
+        protected string? GetEpochTimeDescription(int tagType)
         {
             // TODO have observed a byte[8] here which is likely some kind of date (ticks as long?)
             return Directory.TryGetInt64(tagType, out long value)
@@ -202,8 +185,7 @@ namespace MetadataExtractor
 
         /// <remarks>LSB first. Labels may be null, a String, or a String[2] with (low label,high label) values.</remarks>
         [Pure]
-        [CanBeNull]
-        protected string GetBitFlagDescription(int tagType, [NotNull] params object[] labels)
+        protected string? GetBitFlagDescription(int tagType, params object?[] labels)
         {
             if (!Directory.TryGetInt32(tagType, out int value))
                 return null;
@@ -215,15 +197,13 @@ namespace MetadataExtractor
                 if (labelObj != null)
                 {
                     var isBitSet = (value & 1) == 1;
-                    if (labelObj is string[] obj)
+                    if (labelObj is string[] labelPair && labelPair.Length == 2)
                     {
-                        var labelPair = obj;
-                        Debug.Assert(labelPair.Length == 2);
                         parts.Add(labelPair[isBitSet ? 1 : 0]);
                     }
-                    else if (isBitSet && labelObj is string)
+                    else if (isBitSet && labelObj is string label)
                     {
-                        parts.Add((string)labelObj);
+                        parts.Add(label);
                     }
                 }
                 value >>= 1;
@@ -237,8 +217,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetStringFrom7BitBytes(int tagType)
+        protected string? GetStringFrom7BitBytes(int tagType)
         {
             var bytes = Directory.GetByteArray(tagType);
             if (bytes == null)
@@ -257,8 +236,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetStringFromUtf8Bytes(int tag)
+        protected string? GetStringFromUtf8Bytes(int tag)
         {
             var values = Directory.GetByteArray(tag);
             if (values == null)
@@ -277,8 +255,7 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [CanBeNull]
-        protected string GetRationalOrDoubleString(int tagType)
+        protected string? GetRationalOrDoubleString(int tagType)
         {
             if (Directory.TryGetRational(tagType, out Rational rational))
                 return rational.ToSimpleString();
@@ -290,16 +267,13 @@ namespace MetadataExtractor
         }
 
         [Pure]
-        [NotNull]
         protected static string GetFStopDescription(double fStop) => $"f/{Math.Round(fStop, 1, MidpointRounding.AwayFromZero):0.0}";
 
         [Pure]
-        [NotNull]
         protected static string GetFocalLengthDescription(double mm) => $"{mm:0.#} mm";
 
         [Pure]
-        [CanBeNull]
-        protected string GetLensSpecificationDescription(int tagId)
+        protected string? GetLensSpecificationDescription(int tagId)
         {
             var values = Directory.GetRationalArray(tagId);
 
@@ -337,8 +311,7 @@ namespace MetadataExtractor
             return sb.ToString();
         }
 
-        [CanBeNull]
-        protected string GetOrientationDescription(int tag)
+        protected string? GetOrientationDescription(int tag)
         {
             return GetIndexedDescription(tag, 1,
                 "Top, left side (Horizontal / normal)",
@@ -350,8 +323,7 @@ namespace MetadataExtractor
                 "Left side, bottom (Rotate 270 CW)");
         }
 
-        [CanBeNull]
-        protected string GetShutterSpeedDescription(int tagId)
+        protected string? GetShutterSpeedDescription(int tagId)
         {
             // I believe this method to now be stable, but am leaving some alternative snippets of
             // code in here, to assist anyone who's looking into this (given that I don't have a public CVS).
@@ -379,59 +351,69 @@ namespace MetadataExtractor
             }
         }
 
-        // EXIF LightSource
-        [CanBeNull]
-        protected string GetLightSourceDescription(ushort wbtype)
+        protected string? GetEncodedTextDescription(int tagType)
         {
-            switch (wbtype)
+            var commentBytes = Directory.GetByteArray(tagType);
+
+            if (commentBytes == null)
+                return null;
+
+            if (commentBytes.Length == 0)
+                return string.Empty;
+
+            // TODO use ByteTrie here
+            // Someone suggested "ISO-8859-1".
+            var encodingMap = new Dictionary<string, Encoding>
             {
-                case 0:
-                    return "Unknown";
-                case 1:
-                    return "Daylight";
-                case 2:
-                    return "Fluorescent";
-                case 3:
-                    return "Tungsten (Incandescent)";
-                case 4:
-                    return "Flash";
-                case 9:
-                    return "Fine Weather";
-                case 10:
-                    return "Cloudy";
-                case 11:
-                    return "Shade";
-                case 12:
-                    return "Daylight Fluorescent";    // (D 5700 - 7100K)
-                case 13:
-                    return "Day White Fluorescent";   // (N 4600 - 5500K)
-                case 14:
-                    return "Cool White Fluorescent";  // (W 3800 - 4500K)
-                case 15:
-                    return "White Fluorescent";       // (WW 3250 - 3800K)
-                case 16:
-                    return "Warm White Fluorescent";  // (L 2600 - 3250K)
-                case 17:
-                    return "Standard Light A";
-                case 18:
-                    return "Standard Light B";
-                case 19:
-                    return "Standard Light C";
-                case 20:
-                    return "D55";
-                case 21:
-                    return "D65";
-                case 22:
-                    return "D75";
-                case 23:
-                    return "D50";
-                case 24:
-                    return "ISO Studio Tungsten";
-                case 255:
-                    return "Other";
+                ["ASCII"] = Encoding.ASCII,
+                ["UTF8"] = Encoding.UTF8,
+                ["UTF7"] = Encoding.UTF7,
+                ["UTF32"] = Encoding.UTF32,
+                ["UNICODE"] = Encoding.Unicode
+            };
+
+            try
+            {
+                encodingMap["JIS"] = Encoding.GetEncoding("Shift-JIS");
+            }
+            catch (ArgumentException)
+            {
+                // On some platforms, 'Shift-JIS' is not a supported encoding name
             }
 
-            return GetDescription(wbtype);
+            try
+            {
+                if (commentBytes.Length >= 10)
+                {
+                    // TODO no guarantee bytes after the UTF8 name are valid UTF8 -- only read as many as needed
+                    var firstTenBytesString = Encoding.UTF8.GetString(commentBytes, 0, 10);
+                    // try each encoding name
+                    foreach (var pair in encodingMap)
+                    {
+                        var encodingName = pair.Key;
+                        var encoding = pair.Value;
+                        if (firstTenBytesString.StartsWith(encodingName))
+                        {
+                            // skip any null or blank characters commonly present after the encoding name, up to a limit of 10 from the start
+                            for (var j = encodingName.Length; j < 10; j++)
+                            {
+                                var b = commentBytes[j];
+                                if (b != '\0' && b != ' ')
+                                {
+                                    return encoding.GetString(commentBytes, j, commentBytes.Length - j).Trim('\0', ' ');
+                                }
+                            }
+                            return encoding.GetString(commentBytes, 10, commentBytes.Length - 10).Trim('\0', ' ');
+                        }
+                    }
+                }
+                // special handling fell through, return a plain string representation
+                return Encoding.UTF8.GetString(commentBytes, 0, commentBytes.Length).Trim('\0', ' ');
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

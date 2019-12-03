@@ -1,29 +1,6 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using MetadataExtractor.IO;
 
 namespace MetadataExtractor.Formats.Tiff
@@ -40,21 +17,16 @@ namespace MetadataExtractor.Formats.Tiff
         /// <exception cref="TiffProcessingException">if an error occurred during the processing of TIFF data that could not be ignored or recovered from</exception>
         /// <exception cref="System.IO.IOException">an error occurred while accessing the required data</exception>
         /// <exception cref="TiffProcessingException"/>
-        public static void ProcessTiff([NotNull] IndexedReader reader, [NotNull] ITiffHandler handler)
+        public static void ProcessTiff(IndexedReader reader, ITiffHandler handler)
         {
             // Read byte order.
             var byteOrder = reader.GetInt16(0);
-            switch (byteOrder)
+            reader = byteOrder switch
             {
-                case 0x4d4d: // MM
-                    reader = reader.WithByteOrder(isMotorolaByteOrder: true);
-                    break;
-                case 0x4949: // II
-                    reader = reader.WithByteOrder(isMotorolaByteOrder: false);
-                    break;
-                default:
-                    throw new TiffProcessingException("Unclear distinction between Motorola/Intel byte ordering: " + reader.GetInt16(0));
-            }
+                0x4d4d => reader.WithByteOrder(isMotorolaByteOrder: true),
+                0x4949 => reader.WithByteOrder(isMotorolaByteOrder: false),
+                _ => throw new TiffProcessingException("Unclear distinction between Motorola/Intel byte ordering: " + reader.GetInt16(0)),
+            };
 
             // Check the next two values for correctness.
             int tiffMarker = reader.GetUInt16(2);
@@ -95,7 +67,7 @@ namespace MetadataExtractor.Formats.Tiff
         /// <param name="processedGlobalIfdOffsets">the set of visited IFD offsets, to avoid revisiting the same IFD in an endless loop</param>
         /// <param name="ifdOffset">the offset within <c>reader</c> at which the IFD data starts</param>
         /// <exception cref="System.IO.IOException">an error occurred while accessing the required data</exception>
-        public static void ProcessIfd([NotNull] ITiffHandler handler, [NotNull] IndexedReader reader, [NotNull] ICollection<int> processedGlobalIfdOffsets, int ifdOffset)
+        public static void ProcessIfd(ITiffHandler handler, IndexedReader reader, ICollection<int> processedGlobalIfdOffsets, int ifdOffset)
         {
             try
             {
@@ -259,7 +231,7 @@ namespace MetadataExtractor.Formats.Tiff
         }
 
         /// <exception cref="System.IO.IOException"/>
-        private static void ProcessTag([NotNull] ITiffHandler handler, int tagId, int tagValueOffset, int componentCount, TiffDataFormatCode formatCode, [NotNull] IndexedReader reader)
+        private static void ProcessTag(ITiffHandler handler, int tagId, int tagValueOffset, int componentCount, TiffDataFormatCode formatCode, IndexedReader reader)
         {
             switch (formatCode)
             {

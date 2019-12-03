@@ -1,29 +1,6 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Text;
-using JetBrains.Annotations;
 using MetadataExtractor.IO;
 
 namespace MetadataExtractor.Formats.Riff
@@ -47,7 +24,7 @@ namespace MetadataExtractor.Formats.Riff
         /// <param name="handler">The <see cref="IRiffHandler"/> that will coordinate processing and accept read values.</param>
         /// <exception cref="RiffProcessingException">An error occurred during the processing of RIFF data that could not be ignored or recovered from.</exception>
         /// <exception cref="System.IO.IOException">an error occurred while accessing the required data</exception>
-        public void ProcessRiff([NotNull] SequentialReader reader, [NotNull] IRiffHandler handler)
+        public void ProcessRiff(SequentialReader reader, IRiffHandler handler)
         {
             // RIFF files are always little-endian
             reader = reader.WithByteOrder(isMotorolaByteOrder: false);
@@ -71,7 +48,7 @@ namespace MetadataExtractor.Formats.Riff
         }
 
         // PROCESS CHUNKS
-        public void ProcessChunks([NotNull] SequentialReader reader, int sizeLeft, [NotNull] IRiffHandler handler)
+        public void ProcessChunks(SequentialReader reader, int sizeLeft, IRiffHandler handler)
         {
             // Processing chunks. Each chunk is 8 bytes header (4 bytes CC code + 4 bytes length of chunk) + data of the chunk
 
@@ -118,7 +95,7 @@ namespace MetadataExtractor.Formats.Riff
                     // Skip any padding byte added to keep chunks aligned to even numbers of bytes
                     if (chunkSize % 2 == 1)
                     {
-                        reader.GetSByte();
+                        reader.Skip(1);
                         sizeLeft--;
                     }
                 }

@@ -1,28 +1,6 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-using JetBrains.Annotations;
+using System;
 
 namespace MetadataExtractor.Formats.Tiff
 {
@@ -59,36 +37,34 @@ namespace MetadataExtractor.Formats.Tiff
         public static readonly TiffDataFormat Single    = new TiffDataFormat("SINGLE",    TiffDataFormatCode.Single,    4);
         public static readonly TiffDataFormat Double    = new TiffDataFormat("DOUBLE",    TiffDataFormatCode.Double,    8);
 
-        [CanBeNull]
-        public static TiffDataFormat FromTiffFormatCode(TiffDataFormatCode tiffFormatCode)
+        public static TiffDataFormat? FromTiffFormatCode(TiffDataFormatCode tiffFormatCode)
         {
-            switch (tiffFormatCode)
+            return tiffFormatCode switch
             {
-                case TiffDataFormatCode.Int8U:     return Int8U;
-                case TiffDataFormatCode.String:    return String;
-                case TiffDataFormatCode.Int16U:    return Int16U;
-                case TiffDataFormatCode.Int32U:    return Int32U;
-                case TiffDataFormatCode.RationalU: return RationalU;
-                case TiffDataFormatCode.Int8S:     return Int8S;
-                case TiffDataFormatCode.Undefined: return Undefined;
-                case TiffDataFormatCode.Int16S:    return Int16S;
-                case TiffDataFormatCode.Int32S:    return Int32S;
-                case TiffDataFormatCode.RationalS: return RationalS;
-                case TiffDataFormatCode.Single:    return Single;
-                case TiffDataFormatCode.Double:    return Double;
-            }
+                TiffDataFormatCode.Int8U => Int8U,
+                TiffDataFormatCode.String => String,
+                TiffDataFormatCode.Int16U => Int16U,
+                TiffDataFormatCode.Int32U => Int32U,
+                TiffDataFormatCode.RationalU => RationalU,
+                TiffDataFormatCode.Int8S => Int8S,
+                TiffDataFormatCode.Undefined => Undefined,
+                TiffDataFormatCode.Int16S => Int16S,
+                TiffDataFormatCode.Int32S => Int32S,
+                TiffDataFormatCode.RationalS => RationalS,
+                TiffDataFormatCode.Single => Single,
+                TiffDataFormatCode.Double => Double,
 
-            return null;
+                _ => null,
+            };
         }
 
-        [NotNull]
         public string Name { get; }
         public int ComponentSizeBytes { get; }
         public TiffDataFormatCode TiffFormatCode { get; }
 
-        private TiffDataFormat([NotNull] string name, TiffDataFormatCode tiffFormatCode, int componentSizeBytes)
+        private TiffDataFormat(string name, TiffDataFormatCode tiffFormatCode, int componentSizeBytes)
         {
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             TiffFormatCode = tiffFormatCode;
             ComponentSizeBytes = componentSizeBytes;
         }

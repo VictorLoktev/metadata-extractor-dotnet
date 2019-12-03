@@ -1,33 +1,10 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Formats.Iptc
 {
@@ -210,8 +187,7 @@ namespace MetadataExtractor.Formats.Iptc
 
         /// <summary>Returns any keywords contained in the IPTC data.</summary>
         /// <remarks>This value may be <c>null</c>.</remarks>
-        [CanBeNull]
-        public IList<string> GetKeywords()
+        public IList<string>? GetKeywords()
         {
             return this.GetStringArray(TagKeywords)?.ToList();
         }
@@ -221,7 +197,6 @@ namespace MetadataExtractor.Formats.Iptc
         /// <see cref="DateTimeOffset"/> representing when the service sent this image.
         /// </summary>
         /// <returns>When the service sent this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public DateTimeOffset? GetDateSent()
         {
             return GetDate(TagDateSent, TagTimeSent);
@@ -232,7 +207,6 @@ namespace MetadataExtractor.Formats.Iptc
         /// <see cref="DateTimeOffset"/> representing when this image was released.
         /// </summary>
         /// <returns>When this image was released, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public DateTimeOffset? GetReleaseDate()
         {
             return GetDate(TagReleaseDate, TagReleaseTime);
@@ -243,7 +217,6 @@ namespace MetadataExtractor.Formats.Iptc
         /// <see cref="DateTimeOffset"/> after which this image should not be used.
         /// </summary>
         /// <returns>When this image should expire, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public DateTimeOffset? GetExpirationDate()
         {
             return GetDate(TagExpirationDate, TagExpirationTime);
@@ -254,7 +227,6 @@ namespace MetadataExtractor.Formats.Iptc
         /// <see cref="DateTimeOffset"/> representing when this image was captured.
         /// </summary>
         /// <returns>When this image was released, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public DateTimeOffset? GetDateCreated()
         {
             return GetDate(TagDateCreated, TagTimeCreated);
@@ -265,7 +237,6 @@ namespace MetadataExtractor.Formats.Iptc
         /// <see cref="DateTimeOffset"/> representing when the digital representation of this image was created.
         /// </summary>
         /// <returns>When the digital representation of this image was created, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public DateTimeOffset? GetDigitalDateCreated()
         {
             return GetDate(TagDigitalDateCreated, TagDigitalTimeCreated);
@@ -273,7 +244,6 @@ namespace MetadataExtractor.Formats.Iptc
 
         private static readonly string[] _formats = { "yyyyMMddHHmmsszzz", "yyyyMMddHHmmss" };
 
-        [CanBeNull]
         private DateTimeOffset? GetDate(int dateTagType, int timeTagType)
         {
             var date = this.GetString(dateTagType);

@@ -1,26 +1,4 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -45,14 +23,6 @@ namespace MetadataExtractor.Formats.Jpeg
         /// <summary>For temporary use in arithmetic coding.</summary>
         /// <remarks>No length or parameter sequence follows this marker.</remarks>
         Tem = 0x01,
-
-        /// <summary>Start Of Image segment. Begins the compressed JPEG data stream.</summary>
-        /// <remarks>No length or parameter sequence follows this marker.</remarks>
-        Soi = 0xD8,
-
-        /// <summary>Define Quantization Table.</summary>
-        /// <remarks>Specifies one or more quantization tables.</remarks>
-        Dqt = 0xDB,
 
         /// <summary>Start-of-Frame, non-differential Huffman coding frame, baseline DCT.</summary>
         /// <remarks>
@@ -140,6 +110,10 @@ namespace MetadataExtractor.Formats.Jpeg
         /// <remarks>No length or parameter sequence follows this marker.</remarks>
         Rst7 = 0xD7,
 
+        /// <summary>Start Of Image segment. Begins the compressed JPEG data stream.</summary>
+        /// <remarks>No length or parameter sequence follows this marker.</remarks>
+        Soi = 0xD8,
+
         /// <summary>End-of-Image. Terminates the JPEG compressed data stream that started at <see cref="Soi"/>.</summary>
         /// <remarks>No length or parameter sequence follows this marker.</remarks>
         Eoi = 0xD9,
@@ -153,6 +127,10 @@ namespace MetadataExtractor.Formats.Jpeg
         /// immediately followed by entropy-coded data.
         /// </remarks>
         Sos = 0xDA,
+
+        /// <summary>Define Quantization Table.</summary>
+        /// <remarks>Specifies one or more quantization tables.</remarks>
+        Dqt = 0xDB,
 
         /// <summary>Define Number of Lines.</summary>
         Dnl = 0xDC,
@@ -235,8 +213,13 @@ namespace MetadataExtractor.Formats.Jpeg
             switch (type)
             {
                 case JpegSegmentType.Soi:
-                case JpegSegmentType.Dqt:
+                case JpegSegmentType.Dac:
+                case JpegSegmentType.Dhp:
                 case JpegSegmentType.Dht:
+                case JpegSegmentType.Dnl:
+                case JpegSegmentType.Dqt:
+                case JpegSegmentType.Dri:
+                case JpegSegmentType.Exp:
                     return false;
                 default:
                     return true;

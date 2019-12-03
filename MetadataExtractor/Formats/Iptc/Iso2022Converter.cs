@@ -1,30 +1,7 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Diagnostics;
 using System.Text;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Formats.Iptc
 {
@@ -37,8 +14,7 @@ namespace MetadataExtractor.Formats.Iptc
         private const byte Esc = 0x1B;
 
         /// <summary>Attempts to convert the given ISO2022 escape sequence to an encoding name.</summary>
-        [CanBeNull]
-        public static string ConvertEscapeSequenceToEncodingName([NotNull] byte[] bytes)
+        public static string? ConvertEscapeSequenceToEncodingName(byte[] bytes)
         {
             if (bytes.Length > 2 && bytes[0] == Esc && bytes[1] == PercentSign && bytes[2] == LatinCapitalG)
                 return "UTF-8";
@@ -67,8 +43,7 @@ namespace MetadataExtractor.Formats.Iptc
         /// </remarks>
         /// <param name="bytes">some text as bytes</param>
         /// <returns>the name of the encoding or null if none could be guessed</returns>
-        [CanBeNull]
-        internal static Encoding GuessEncoding([NotNull] byte[] bytes)
+        internal static Encoding? GuessEncoding(byte[] bytes)
         {
             // First, give ASCII a shot
             var ascii = true;
@@ -117,7 +92,7 @@ namespace MetadataExtractor.Formats.Iptc
                 try
                 {
                     // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-                    var s = encoding.GetString(bytes, 0, bytes.Length);
+                    var s = encoding!.GetString(bytes, 0, bytes.Length);
                     if (s.IndexOf((char)65533) != -1)
                         continue;
                     return encoding;

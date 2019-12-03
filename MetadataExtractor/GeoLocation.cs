@@ -1,26 +1,4 @@
-﻿#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+﻿// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using JetBrains.Annotations;
@@ -63,7 +41,7 @@ namespace MetadataExtractor
         /// of format:
         /// <c>-1° 23' 4.56"</c>
         /// </summary>
-        [NotNull, Pure]
+        [Pure]
         public static string DecimalToDegreesMinutesSecondsString(double value)
         {
             var dms = DecimalToDegreesMinutesSeconds(value);
@@ -74,7 +52,7 @@ namespace MetadataExtractor
         /// Converts a decimal degree angle into its corresponding DMS (degrees-minutes-seconds) component values, as
         /// a double array.
         /// </summary>
-        [NotNull, Pure]
+        [Pure]
         public static double[] DecimalToDegreesMinutesSeconds(double value)
         {
             var d = (int)value;
@@ -88,7 +66,7 @@ namespace MetadataExtractor
         /// <see cref="GpsDirectory"/>, into a single value in degrees,
         /// as a double.
         /// </summary>
-        [CanBeNull, Pure]
+        [Pure]
         public static double? DegreesMinutesSecondsToDecimal(Rational degs, Rational mins, Rational secs, bool isNegative)
         {
             var value = Math.Abs(degs.ToDouble()) + mins.ToDouble()/60.0d + secs.ToDouble()/3600.0d;
@@ -103,12 +81,12 @@ namespace MetadataExtractor
 
         #region Equality and Hashing
 
-        private bool Equals([NotNull] GeoLocation other) => Latitude.Equals(other.Latitude) &&
+        private bool Equals(GeoLocation other) => Latitude.Equals(other.Latitude) &&
                                                   Longitude.Equals(other.Longitude);
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
                 return false;
             if (ReferenceEquals(this, obj))
                 return true;
@@ -131,7 +109,7 @@ namespace MetadataExtractor
         /// a string representation of this location, of format:
         /// <c>-1° 23' 4.56", 54° 32' 1.92"</c>
         /// </returns>
-        [NotNull, Pure]
+        [Pure]
         public string ToDmsString() => DecimalToDegreesMinutesSecondsString(Latitude) + ", " + DecimalToDegreesMinutesSecondsString(Longitude);
 
         #endregion

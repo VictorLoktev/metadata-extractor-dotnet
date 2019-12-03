@@ -1,30 +1,9 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using JetBrains.Annotations;
 using MetadataExtractor.IO;
 
 namespace MetadataExtractor.Formats.Photoshop
@@ -34,12 +13,12 @@ namespace MetadataExtractor.Formats.Photoshop
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public sealed class PhotoshopDescriptor : TagDescriptor<PhotoshopDirectory>
     {
-        public PhotoshopDescriptor([NotNull] PhotoshopDirectory directory)
+        public PhotoshopDescriptor(PhotoshopDirectory directory)
             : base(directory)
         {
         }
 
-        public override string GetDescription(int tagType)
+        public override string? GetDescription(int tagType)
         {
             switch (tagType)
             {
@@ -70,13 +49,16 @@ namespace MetadataExtractor.Formats.Photoshop
                     return GetPrintScaleDescription();
                 case PhotoshopDirectory.TagPixelAspectRatio:
                     return GetPixelAspectRatioString();
+                case PhotoshopDirectory.TagClippingPathName:
+                    return GetClippingPathNameString(tagType);
                 default:
+                    if (tagType >= PhotoshopDirectory.TagClippingPathBlockStart && tagType <= PhotoshopDirectory.TagClippingPathBlockEnd)
+                        return GetPathString(tagType);
                     return base.GetDescription(tagType);
             }
         }
 
-        [CanBeNull]
-        public string GetJpegQualityString()
+        public string? GetJpegQualityString()
         {
             try
             {
@@ -124,24 +106,13 @@ namespace MetadataExtractor.Formats.Photoshop
                         quality = "Unknown";
                         break;
                 }
-
-                string format;
-                switch (f)
+                var format = f switch
                 {
-                    case 0x0000:
-                        format = "Standard";
-                        break;
-                    case 0x0001:
-                        format = "Optimised";
-                        break;
-                    case 0x0101:
-                        format = "Progressive";
-                        break;
-                    default:
-                        format = $"Unknown (0x{f:X4})";
-                        break;
-                }
-
+                    0x0000 => "Standard",
+                    0x0001 => "Optimised",
+                    0x0101 => "Progressive",
+                    _ => $"Unknown (0x{f:X4})",
+                };
                 var scans = s >= 1 && s <= 3
                     ? (s + 2).ToString()
                     : $"Unknown (0x{s:X4})";
@@ -154,8 +125,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        public string GetPixelAspectRatioString()
+        public string? GetPixelAspectRatioString()
         {
             try
             {
@@ -174,8 +144,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        public string GetPrintScaleDescription()
+        public string? GetPrintScaleDescription()
         {
             try
             {
@@ -190,17 +159,13 @@ namespace MetadataExtractor.Formats.Photoshop
                 var locY = reader.GetFloat32(6);
                 var scale = reader.GetFloat32(10);
 
-                switch (style)
+                return style switch
                 {
-                    case 0:
-                        return $"Centered, Scale {scale:0.0##}";
-                    case 1:
-                        return "Size to fit";
-                    case 2:
-                        return $"User defined, X:{locX} Y:{locY}, Scale:{scale:0.0##}";
-                    default:
-                        return $"Unknown {style:X4}, X:{locX} Y:{locY}, Scale:{scale:0.0##}";
-                }
+                    0 => $"Centered, Scale {scale:0.0##}",
+                    1 => "Size to fit",
+                    2 => $"User defined, X:{locX} Y:{locY}, Scale:{scale:0.0##}",
+                    _ => $"Unknown {style:X4}, X:{locX} Y:{locY}, Scale:{scale:0.0##}",
+                };
             }
             catch
             {
@@ -208,8 +173,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        public string GetResolutionInfoDescription()
+        public string? GetResolutionInfoDescription()
         {
             try
             {
@@ -232,8 +196,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        public string GetVersionDescription()
+        public string? GetVersionDescription()
         {
             try
             {
@@ -266,8 +229,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        public string GetSlicesDescription()
+        public string? GetSlicesDescription()
         {
             try
             {
@@ -290,8 +252,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        public string GetThumbnailDescription(int tagType)
+        public string? GetThumbnailDescription(int tagType)
         {
             try
             {
@@ -318,8 +279,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        private string GetBooleanString(int tag)
+        private string? GetBooleanString(int tag)
         {
             var bytes = Directory.GetByteArray(tag);
 
@@ -329,8 +289,7 @@ namespace MetadataExtractor.Formats.Photoshop
             return bytes[0] == 0 ? "No" : "Yes";
         }
 
-        [CanBeNull]
-        private string Get32BitNumberString(int tag)
+        private string? Get32BitNumberString(int tag)
         {
             var bytes = Directory.GetByteArray(tag);
 
@@ -349,8 +308,7 @@ namespace MetadataExtractor.Formats.Photoshop
             }
         }
 
-        [CanBeNull]
-        private string GetSimpleString(int tagType)
+        private string? GetSimpleString(int tagType)
         {
             var bytes = Directory.GetByteArray(tagType);
 
@@ -359,8 +317,7 @@ namespace MetadataExtractor.Formats.Photoshop
                 : Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
-        [CanBeNull]
-        private string GetBinaryDataString(int tagType)
+        private string? GetBinaryDataString(int tagType)
         {
             var bytes = Directory.GetByteArray(tagType);
 
@@ -368,5 +325,176 @@ namespace MetadataExtractor.Formats.Photoshop
                 ? null
                 : $"{bytes.Length} bytes binary data";
         }
+
+        private string? GetClippingPathNameString(int tagType)
+        {
+            try
+            {
+                var bytes = Directory.GetByteArray(tagType);
+                if (bytes == null)
+                    return null;
+                var reader = new ByteArrayReader(bytes);
+                int length = reader.GetByte(0);
+                return Encoding.UTF8.GetString(reader.GetBytes(1, length));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public string? GetPathString(int tagType)
+        {
+            try
+            {
+                var bytes = Directory.GetByteArray(tagType);
+                if (bytes == null)
+                    return null;
+                var reader = new ByteArrayReader(bytes);
+                int length = (int)(reader.Length - reader.GetByte((int)reader.Length - 1) - 1) / 26;
+
+                string? fillRecord = null;
+
+                // Possible subpaths
+                var cSubpath = new Subpath();
+                var oSubpath = new Subpath();
+
+                var paths = new List<Subpath>();
+
+                // Loop through each path resource block segment (26-bytes)
+                for (int i = 0; i < length; i++)
+                {
+                    // Spacer takes into account which block is currently being worked on while accessing byte array
+                    int recordSpacer = 26 * i;
+                    int selector = reader.GetInt16(recordSpacer);
+
+                    /*
+                     * Subpath resource blocks come in 26-byte segments with 9 possible selectors - some selectors
+                     * are formatted different from others
+                     *
+                     *      0 = Closed subpath length record
+                     *      1 = Closed subpath Bezier knot, linked
+                     *      2 = Closed subpath Bezier knot, unlinked
+                     *      3 = Open subpath length record
+                     *      4 = Open subpath Bezier knot, linked
+                     *      5 = Open subpath Bezier knot, unlinked
+                     *      6 = Subpath fill rule record
+                     *      7 = Clipboard record
+                     *      8 = Initial fill rule record
+                     *
+                     * Source: http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/
+                     */
+                    switch (selector)
+                    {
+                        case 0:
+                            // Insert previous Paths if there are any
+                            if (cSubpath.KnotCount != 0)
+                            {
+                                paths.Add(cSubpath);
+                            }
+
+                            // Make path size accordingly
+                            cSubpath = new Subpath("Closed Subpath");
+                            break;
+                        case 1:
+                        case 2:
+                            {
+                                Knot knot;
+                                if (selector == 1)
+                                    knot = new Knot("Linked");
+                                else
+                                    knot = new Knot("Unlinked");
+                                // Insert each point into cSubpath - points are 32-bit signed, fixed point numbers and have 8-bits before the point
+                                for (int j = 0; j < 6; j++)
+                                {
+                                    knot[j] = reader.GetByte((j * 4) + 2 + recordSpacer) + (reader.GetInt24((j * 4) + 3 + recordSpacer) / Math.Pow(2.0, 24.0));
+                                }
+                                cSubpath.Add(knot);
+                                break;
+                            }
+                        case 3:
+                            // Insert previous Paths if there are any
+                            if (oSubpath.KnotCount != 0)
+                            {
+                                paths.Add(oSubpath);
+                            }
+
+                            // Make path size accordingly
+                            oSubpath = new Subpath("Open Subpath");
+                            break;
+                        case 4:
+                        case 5:
+                            {
+                                Knot knot;
+                                if (selector == 4)
+                                    knot = new Knot("Linked");
+                                else
+                                    knot = new Knot("Unlinked");
+                                // Insert each point into oSubpath - points are 32-bit signed, fixed point numbers and have 8-bits before the point
+                                for (int j = 0; j < 6; j++)
+                                {
+                                    knot[j] = reader.GetByte((j * 4) + 2 + recordSpacer) + (reader.GetInt24((j * 4) + 3 + recordSpacer) / Math.Pow(2.0, 24.0));
+                                }
+                                oSubpath.Add(knot);
+                                break;
+                            }
+                        case 6:
+                            break;
+                        case 7:
+                            // TODO: Clipboard record
+                            //                        for (int j = 0; j < 24; j++) {
+                            //                           clipboardRecord[j] = bytes[j + 2 + recordSpacer];
+                            //                        }
+                            break;
+                        case 8:
+                            if (reader.GetInt16(2 + recordSpacer) == 1)
+                                fillRecord = "with all pixels";
+                            else
+                                fillRecord = "without all pixels";
+                            break;
+                    }
+                }
+
+                // Add any more paths that were not added already
+                if (cSubpath.KnotCount != 0)
+                    paths.Add(cSubpath);
+                if (oSubpath.KnotCount != 0)
+                    paths.Add(oSubpath);
+
+                // Extract name (previously appended to end of byte array)
+                int nameLength = reader.GetByte((int)reader.Length - 1);
+                var name = reader.GetString((int)reader.Length - nameLength - 1, nameLength, Encoding.ASCII);
+
+                // Build description
+                var str = new StringBuilder();
+
+                str.Append($"\"{name}\" having ");
+                if (fillRecord != null)
+                    str.Append($"initial fill rule \"{fillRecord}\" and ");
+
+                str.Append(paths.Count).Append(paths.Count == 1 ? " subpath:" : " subpaths:");
+
+                foreach(Subpath path in paths)
+                {
+                    str.Append($"\n- {path.Type} with { paths.Count}").Append(paths.Count == 1 ? " knot:" : " knots:");
+
+                    foreach (Knot knot in path.Knots)
+                    {
+                        str.Append($"\n  - {knot.Type}");
+                        str.Append($" ({knot[0]},{knot[1]})");
+                        str.Append($" ({knot[2]},{knot[3]})");
+                        str.Append($" ({knot[4]},{knot[5]})");
+                    }
+                }
+
+                return str.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
     }
 }

@@ -1,26 +1,4 @@
-﻿#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+﻿// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,9 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using MetadataExtractor.Formats.Exif.Makernotes;
+using MetadataExtractor.Formats.Icc;
 using MetadataExtractor.Formats.Iptc;
+using MetadataExtractor.Formats.Photoshop;
 using MetadataExtractor.Formats.Tiff;
 using MetadataExtractor.Formats.Xmp;
 using MetadataExtractor.IO;
@@ -46,7 +25,7 @@ namespace MetadataExtractor.Formats.Exif
     /// <author>Drew Noakes https://drewnoakes.com</author>
     public class ExifTiffHandler : DirectoryTiffHandler
     {
-        public ExifTiffHandler([NotNull] List<Directory> directories)
+        public ExifTiffHandler(List<Directory> directories)
             : base(directories)
         {}
 
@@ -160,7 +139,7 @@ namespace MetadataExtractor.Formats.Exif
             // Some 0x0000 tags have a 0 byteCount. Determine whether it's bad.
             if (tagId == 0)
             {
-                if (CurrentDirectory.ContainsTag(tagId))
+                if (CurrentDirectory!.ContainsTag(tagId))
                 {
                     // Let it go through for now. Some directories handle it, some don't.
                     return false;
@@ -190,6 +169,30 @@ namespace MetadataExtractor.Formats.Exif
                 return false;
             }
 
+            // Custom processing for ICC Profile data
+            if (tagId == ExifDirectoryBase.TagInterColorProfile)
+            {
+                var iccBytes = reader.GetBytes(tagOffset, byteCount);
+                var iccDirectory = new IccReader().Extract(new ByteArrayReader(iccBytes));
+                iccDirectory.Parent = CurrentDirectory;
+                Directories.Add(iccDirectory);
+                return true;
+            }
+
+            // Custom processing for Photoshop data
+            if (tagId == ExifDirectoryBase.TagPhotoshopSettings && CurrentDirectory is ExifIfd0Directory)
+            {
+                var photoshopBytes = reader.GetBytes(tagOffset, byteCount);
+                var photoshopDirectories = new PhotoshopReader().Extract(new SequentialByteArrayReader(photoshopBytes), byteCount);
+                if (photoshopDirectories != null)
+                {
+                    // Could be any number of directories. Only assign the Parent to the PhotoshopDirectory
+                    photoshopDirectories.OfType<PhotoshopDirectory>().First().Parent = CurrentDirectory;
+                    Directories.AddRange(photoshopDirectories);
+                }
+                return true;
+            }
+
             // Custom processing for embedded XMP data
             if (tagId == ExifDirectoryBase.TagApplicationNotes && CurrentDirectory is ExifIfd0Directory)
             {
@@ -199,7 +202,7 @@ namespace MetadataExtractor.Formats.Exif
                 return true;
             }
 
-            if (HandlePrintIM(CurrentDirectory, tagId))
+            if (HandlePrintIM(CurrentDirectory!, tagId))
             {
                 var printIMDirectory = new PrintIMDirectory { Parent = CurrentDirectory };
                 Directories.Add(printIMDirectory);
@@ -311,7 +314,7 @@ namespace MetadataExtractor.Formats.Exif
         }
 
         /// <exception cref="System.IO.IOException"/>
-        private bool ProcessMakernote(int makernoteOffset, [NotNull] ICollection<int> processedIfdOffsets, [NotNull] IndexedReader reader)
+        private bool ProcessMakernote(int makernoteOffset, ICollection<int> processedIfdOffsets, IndexedReader reader)
         {
             Debug.Assert(makernoteOffset >= 0, "makernoteOffset >= 0");
 
@@ -578,6 +581,11 @@ namespace MetadataExtractor.Formats.Exif
                 PushDirectory(new SamsungType2MakernoteDirectory());
                 TiffReader.ProcessIfd(this, reader, processedIfdOffsets, makernoteOffset);
             }
+            else if (string.Equals("DJI", cameraMake, StringComparison.Ordinal))
+            {
+                PushDirectory(new DJIMakernoteDirectory());
+                TiffReader.ProcessIfd(this, reader, processedIfdOffsets, makernoteOffset);
+            }
             else
             {
                 // The makernote is not comprehended by this library.
@@ -588,7 +596,7 @@ namespace MetadataExtractor.Formats.Exif
             return true;
         }
 
-        private static bool HandlePrintIM([NotNull] Directory directory, int tagId)
+        private static bool HandlePrintIM(Directory directory, int tagId)
         {
             if (tagId == ExifDirectoryBase.TagPrintImageMatchingInfo)
                 return true;
@@ -619,7 +627,7 @@ namespace MetadataExtractor.Formats.Exif
         /// http://www.sno.phy.queensu.ca/~phil/exiftool/
         /// lib\Image\ExifTool\PrintIM.pm
         /// </remarks>
-        private static void ProcessPrintIM([NotNull] PrintIMDirectory directory, int tagValueOffset, [NotNull] IndexedReader reader, int byteCount)
+        private static void ProcessPrintIM(PrintIMDirectory directory, int tagValueOffset, IndexedReader reader, int byteCount)
         {
             if (byteCount == 0)
             {
@@ -668,7 +676,7 @@ namespace MetadataExtractor.Formats.Exif
             }
         }
 
-        private static void ProcessBinary([NotNull] Directory directory, int tagValueOffset, [NotNull] IndexedReader reader, int byteCount, bool issigned = true, int arrayLength = 1)
+        private static void ProcessBinary(Directory directory, int tagValueOffset, IndexedReader reader, int byteCount, bool issigned = true, int arrayLength = 1)
         {
             // expects signed/unsigned int16 (for now)
             var byteSize = issigned ? sizeof(short) : sizeof(ushort);
@@ -711,7 +719,7 @@ namespace MetadataExtractor.Formats.Exif
             }
         }
 
-        private static void ProcessKodakMakernote([NotNull] KodakMakernoteDirectory directory, int tagValueOffset, [NotNull] IndexedReader reader)
+        private static void ProcessKodakMakernote(KodakMakernoteDirectory directory, int tagValueOffset, IndexedReader reader)
         {
             // Kodak's makernote is not in IFD format. It has values at fixed offsets.
             var dataOffset = tagValueOffset + 8;
@@ -750,7 +758,7 @@ namespace MetadataExtractor.Formats.Exif
             }
         }
 
-        private static void ProcessReconyxHyperFireMakernote([NotNull] ReconyxHyperFireMakernoteDirectory directory, int makernoteOffset, [NotNull] IndexedReader reader)
+        private static void ProcessReconyxHyperFireMakernote(ReconyxHyperFireMakernoteDirectory directory, int makernoteOffset, IndexedReader reader)
         {
             directory.Set(ReconyxHyperFireMakernoteDirectory.TagMakernoteVersion, reader.GetUInt16(makernoteOffset));
 
@@ -819,7 +827,7 @@ namespace MetadataExtractor.Formats.Exif
             directory.Set(ReconyxHyperFireMakernoteDirectory.TagUserLabel, reader.GetNullTerminatedString(makernoteOffset + ReconyxHyperFireMakernoteDirectory.TagUserLabel, 44));
         }
 
-        private static void ProcessReconyxUltraFireMakernote([NotNull] ReconyxUltraFireMakernoteDirectory directory, int makernoteOffset, [NotNull] IndexedReader reader)
+        private static void ProcessReconyxUltraFireMakernote(ReconyxUltraFireMakernoteDirectory directory, int makernoteOffset, IndexedReader reader)
         {
             directory.Set(ReconyxUltraFireMakernoteDirectory.TagLabel, reader.GetString(makernoteOffset, 9, Encoding.UTF8));
             uint makernoteID = ByteConvert.FromBigEndianToNative(reader.GetUInt32(makernoteOffset + ReconyxUltraFireMakernoteDirectory.TagMakernoteID));
@@ -885,7 +893,7 @@ namespace MetadataExtractor.Formats.Exif
             directory.Set(ReconyxUltraFireMakernoteDirectory.TagUserLabel, reader.GetNullTerminatedString(makernoteOffset + ReconyxUltraFireMakernoteDirectory.TagUserLabel, 20, Encoding.UTF8));
         }
 
-        private static string ProcessReconyxUltraFireVersion(int versionOffset, [NotNull] IndexedReader reader)
+        private static string ProcessReconyxUltraFireVersion(int versionOffset, IndexedReader reader)
         {
             string major = reader.GetByte(versionOffset).ToString();
             string minor = reader.GetByte(versionOffset + 1).ToString();

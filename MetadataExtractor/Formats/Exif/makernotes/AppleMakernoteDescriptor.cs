@@ -1,5 +1,6 @@
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+
 using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Formats.Exif.Makernotes
 {
@@ -11,12 +12,12 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class AppleMakernoteDescriptor : TagDescriptor<AppleMakernoteDirectory>
     {
-        public AppleMakernoteDescriptor([NotNull] AppleMakernoteDirectory directory)
+        public AppleMakernoteDescriptor(AppleMakernoteDirectory directory)
             : base(directory)
         {
         }
 
-        public override string GetDescription(int tagType)
+        public override string? GetDescription(int tagType)
         {
             switch (tagType)
             {
@@ -31,8 +32,7 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
             }
         }
 
-        [CanBeNull]
-        private string GetHdrImageTypeDescription()
+        private string? GetHdrImageTypeDescription()
         {
             return GetIndexedDescription(AppleMakernoteDirectory.TagHdrImageType, 3, "HDR Image", "Original Image");
         }

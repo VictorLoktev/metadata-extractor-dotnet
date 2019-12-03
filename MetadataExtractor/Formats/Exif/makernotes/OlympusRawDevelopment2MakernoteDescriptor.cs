@@ -1,27 +1,5 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -41,60 +19,46 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public sealed class OlympusRawDevelopment2MakernoteDescriptor : TagDescriptor<OlympusRawDevelopment2MakernoteDirectory>
     {
-        public OlympusRawDevelopment2MakernoteDescriptor([NotNull] OlympusRawDevelopment2MakernoteDirectory directory)
+        public OlympusRawDevelopment2MakernoteDescriptor(OlympusRawDevelopment2MakernoteDirectory directory)
             : base(directory)
         {
         }
 
-        public override string GetDescription(int tagType)
+        public override string? GetDescription(int tagType)
         {
-            switch (tagType)
+            return tagType switch
             {
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevVersion:
-                    return GetRawDevVersionDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevExposureBiasValue:
-                    return GetRawDevExposureBiasValueDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevColorSpace:
-                    return GetRawDevColorSpaceDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevNoiseReduction:
-                    return GetRawDevNoiseReductionDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevEngine:
-                    return GetRawDevEngineDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevPictureMode:
-                    return GetRawDevPictureModeDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevPmBwFilter:
-                    return GetRawDevPmBwFilterDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevPmPictureTone:
-                    return GetRawDevPmPictureToneDescription();
-                case OlympusRawDevelopment2MakernoteDirectory.TagRawDevArtFilter:
-                    return GetRawDevArtFilterDescription();
-                default:
-                    return base.GetDescription(tagType);
-            }
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevVersion => GetRawDevVersionDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevExposureBiasValue => GetRawDevExposureBiasValueDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevColorSpace => GetRawDevColorSpaceDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevNoiseReduction => GetRawDevNoiseReductionDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevEngine => GetRawDevEngineDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevPictureMode => GetRawDevPictureModeDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevPmBwFilter => GetRawDevPmBwFilterDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevPmPictureTone => GetRawDevPmPictureToneDescription(),
+                OlympusRawDevelopment2MakernoteDirectory.TagRawDevArtFilter => GetRawDevArtFilterDescription(),
+                _ => base.GetDescription(tagType),
+            };
         }
 
-        [CanBeNull]
-        public string GetRawDevVersionDescription()
+        public string? GetRawDevVersionDescription()
         {
             return GetVersionBytesDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevVersion, 4);
         }
 
-        [CanBeNull]
-        public string GetRawDevExposureBiasValueDescription()
+        public string? GetRawDevExposureBiasValueDescription()
         {
             return GetIndexedDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevExposureBiasValue, 1,
                 "Color Temperature", "Gray Point");
         }
 
-        [CanBeNull]
-        public string GetRawDevColorSpaceDescription()
+        public string? GetRawDevColorSpaceDescription()
         {
             return GetIndexedDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevColorSpace,
                 "sRGB", "Adobe RGB", "Pro Photo RGB");
         }
 
-        [CanBeNull]
-        public string GetRawDevNoiseReductionDescription()
+        public string? GetRawDevNoiseReductionDescription()
         {
             if (!Directory.TryGetInt32(OlympusRawDevelopment2MakernoteDirectory.TagRawDevNoiseReduction, out int value))
                 return null;
@@ -108,62 +72,53 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
             if ((v        & 1) != 0) sb.Append("Noise Reduction, ");
             if (((v >> 1) & 1) != 0) sb.Append("Noise Filter, ");
             if (((v >> 2) & 1) != 0) sb.Append("Noise Filter (ISO Boost), ");
+            if (((v >> 3) & 1) != 0) sb.Append("Noise Filter (Auto), ");
 
-            return sb.ToString(0, sb.Length - 2);
+            if (sb.Length > 2)
+                sb.Length -= 2;
+
+            return sb.ToString();
         }
 
-        [CanBeNull]
-        public string GetRawDevEngineDescription()
+        public string? GetRawDevEngineDescription()
         {
             return GetIndexedDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevEngine,
                 "High Speed", "High Function", "Advanced High Speed", "Advanced High Function");
         }
 
-        [CanBeNull]
-        public string GetRawDevPictureModeDescription()
+        public string? GetRawDevPictureModeDescription()
         {
             if (!Directory.TryGetInt32(OlympusRawDevelopment2MakernoteDirectory.TagRawDevPictureMode, out int value))
                 return null;
 
-            switch (value)
+            return value switch
             {
-                case 1:
-                    return "Vivid";
-                case 2:
-                    return "Natural";
-                case 3:
-                    return "Muted";
-                case 256:
-                    return "Monotone";
-                case 512:
-                    return "Sepia";
-                default:
-                    return "Unknown (" + value + ")";
-            }
+                1 => "Vivid",
+                2 => "Natural",
+                3 => "Muted",
+                256 => "Monotone",
+                512 => "Sepia",
+                _ => "Unknown (" + value + ")",
+            };
         }
 
-        [CanBeNull]
-        public string GetRawDevPmBwFilterDescription()
+        public string? GetRawDevPmBwFilterDescription()
         {
             return GetIndexedDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevPmBwFilter, 1,
                 "Neutral", "Yellow", "Orange", "Red", "Green");
         }
 
-        [CanBeNull]
-        public string GetRawDevPmPictureToneDescription()
+        public string? GetRawDevPmPictureToneDescription()
         {
             return GetIndexedDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevPmPictureTone, 1,
                 "Neutral", "Sepia", "Blue", "Purple", "Green");
         }
 
-        [CanBeNull]
-        public string GetRawDevArtFilterDescription() => GetFilterDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevArtFilter);
+        public string? GetRawDevArtFilterDescription() => GetFilterDescription(OlympusRawDevelopment2MakernoteDirectory.TagRawDevArtFilter);
 
-        [CanBeNull]
-        private string GetFilterDescription(int tagId)
+        private string? GetFilterDescription(int tagId)
         {
-            var values = Directory.GetObject(tagId) as short[];
-            if (values == null || values.Length == 0)
+            if (!(Directory.GetObject(tagId) is short[] values) || values.Length == 0)
                 return null;
 
             var sb = new StringBuilder();

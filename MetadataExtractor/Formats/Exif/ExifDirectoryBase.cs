@@ -1,30 +1,7 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Formats.Exif
 {
@@ -231,6 +208,8 @@ namespace MetadataExtractor.Formats.Exif
 
         public const int TagIptcNaa = 0x83BB;
 
+        public const int TagPhotoshopSettings = 0x8649;
+
         public const int TagInterColorProfile = 0x8773;
 
         /// <summary>Exposure program that the camera used when image was taken.</summary>
@@ -293,6 +272,12 @@ namespace MetadataExtractor.Formats.Exif
 
         public const int TagDateTimeDigitized = 0x9004;
 
+        public const int TagTimeZone = 0x9010;
+
+        public const int TagTimeZoneOriginal = 0x9011;
+
+        public const int TagTimeZoneDigitized = 0x9012;
+
         public const int TagComponentsConfiguration = 0x9101;
 
         /// <summary>Average (rough estimate) compression level in JPEG bits per pixel.</summary>
@@ -348,6 +333,7 @@ namespace MetadataExtractor.Formats.Exif
         /// '18' standard light B, '19' standard light C, '20' D55, '21' D65,
         /// '22' D75, '255' other.
         /// </remarks>
+        /// <seealso cref="TagWhiteBalanceMode" />
         public const int TagWhiteBalance = 0x9208;
 
         /// <summary>
@@ -535,6 +521,7 @@ namespace MetadataExtractor.Formats.Exif
         /// 1 = Manual white balance
         /// Other = reserved
         /// </remarks>
+        /// <seealso cref="TagWhiteBalance" />
         public const int TagWhiteBalanceMode = 0xA403;
 
         /// <summary>This tag indicates the digital zoom ratio when the image was shot.</summary>
@@ -723,7 +710,7 @@ namespace MetadataExtractor.Formats.Exif
 
         public const int TagLens = 0xFDEA;
 
-        protected static void AddExifTagNames([NotNull] Dictionary<int, string> map)
+        protected static void AddExifTagNames(Dictionary<int, string> map)
         {
             map[TagInteropIndex] = "Interoperability Index";
             map[TagInteropVersion] = "Interoperability Version";
@@ -794,6 +781,7 @@ namespace MetadataExtractor.Formats.Exif
             map[TagExposureTime] = "Exposure Time";
             map[TagFNumber] = "F-Number";
             map[TagIptcNaa] = "IPTC/NAA";
+            map[TagPhotoshopSettings] = "Photoshop Settings";
             map[TagInterColorProfile] = "Inter Color Profile";
             map[TagExposureProgram] = "Exposure Program";
             map[TagSpectralSensitivity] = "Spectral Sensitivity";
@@ -810,6 +798,9 @@ namespace MetadataExtractor.Formats.Exif
             map[TagExifVersion] = "Exif Version";
             map[TagDateTimeOriginal] = "Date/Time Original";
             map[TagDateTimeDigitized] = "Date/Time Digitized";
+            map[TagTimeZone] = "Time Zone";
+            map[TagTimeZoneOriginal] = "Time Zone Original";
+            map[TagTimeZoneDigitized] = "Time Zone Digitized";
             map[TagComponentsConfiguration] = "Components Configuration";
             map[TagCompressedAverageBitsPerPixel] = "Compressed Bits Per Pixel";
             map[TagShutterSpeed] = "Shutter Speed Value";

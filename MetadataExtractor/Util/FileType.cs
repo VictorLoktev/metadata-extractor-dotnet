@@ -1,31 +1,8 @@
-#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 
 namespace MetadataExtractor.Util
 {
@@ -96,7 +73,16 @@ namespace MetadataExtractor.Util
         QuickTime = 20,
 
         /// <summary>Netpbm family of image formats.</summary>
-        Netpbm = 21
+        Netpbm = 21,
+
+        /// <summary>Canon camera raw (version 3).</summary>
+        /// <remarks>Shared by CR3 (image) and CRM (video).</remarks>
+        Crx = 22,
+        /// <summary>Encapsulated PostScript</summary>
+        Eps = 23, //("EPS", "Encapsulated PostScript", "application/postscript", "eps", "epsf", "epsi"),
+
+        /// <summary>Truevision graphics.</summary>
+        Tga = 24
     }
 
     public static class FileTypeExtensions
@@ -124,7 +110,10 @@ namespace MetadataExtractor.Util
             "RAF",
             "RW2",
             "QuickTime",
-            "Netpbm"
+            "Netpbm",
+            "CRX",
+            "EPS",
+            "TGA"
         };
         
         private static readonly string[] _longNames =
@@ -150,10 +139,13 @@ namespace MetadataExtractor.Util
             "FujiFilm Camera Raw",
             "Panasonic Camera Raw",
             "QuickTime",
-            "Netpbm"
+            "Netpbm",
+            "Canon Camera Raw",
+            "Encapsulated PostScript",
+            "Truevision Graphics"
         };
 
-        [ItemCanBeNull] private static readonly string[] _mimeTypes =
+        private static readonly string?[] _mimeTypes =
         {
             null,
             "image/jpeg",
@@ -176,10 +168,13 @@ namespace MetadataExtractor.Util
             null,
             null,
             "video/quicktime",
-            "image/x-portable-graymap"
+            "image/x-portable-graymap",
+            null,
+            "application/postscript",
+            "image/x-targa"
         };
 
-        [ItemCanBeNull] private static readonly string[][] _extensions =
+        private static readonly string[]?[] _extensions =
         {
             null,
             new[] { "jpg", "jpeg", "jpe" },
@@ -202,10 +197,12 @@ namespace MetadataExtractor.Util
             new[] { "raf" },
             new[] { "rw2" },
             new[] { "mov" },
-            new[] { "pbm", "ppm" }
+            new[] { "pbm", "ppm" },
+            new[] { "cr3", "crm" },
+            new[] { "eps", "epsf", "epsi" },
+            new[] { "tga", "icb", "vda", "vst" }
         };
         
-        [NotNull]
         public static string GetName(this FileType fileType)
         {
             var i = (int)fileType;
@@ -214,7 +211,6 @@ namespace MetadataExtractor.Util
             return _shortNames[i];
         }
         
-        [NotNull]
         public static string GetLongName(this FileType fileType)
         {
             var i = (int)fileType;
@@ -223,8 +219,7 @@ namespace MetadataExtractor.Util
             return _longNames[i];
         }
         
-        [CanBeNull]
-        public static string GetMimeType(this FileType fileType)
+        public static string? GetMimeType(this FileType fileType)
         {
             var i = (int)fileType;
             if (i < 0 || i >= _mimeTypes.Length)
@@ -232,8 +227,7 @@ namespace MetadataExtractor.Util
             return _mimeTypes[i];
         }
         
-        [CanBeNull]
-        public static string GetCommonExtension(this FileType fileType)
+        public static string? GetCommonExtension(this FileType fileType)
         {
             var i = (int)fileType;
             if (i < 0 || i >= _extensions.Length)
@@ -241,11 +235,10 @@ namespace MetadataExtractor.Util
             return _extensions[i]?.FirstOrDefault();
         }
         
-        [CanBeNull]
-        public static IEnumerable<string> GetAllExtensions(this FileType fileType)
+        public static IEnumerable<string>? GetAllExtensions(this FileType fileType)
         {
             var i = (int)fileType;
-            if (i < 0 || i >= _mimeTypes.Length)
+            if (i < 0 || i >= _extensions.Length)
                 throw new ArgumentException($"Invalid {nameof(FileType)} enum member.", nameof(fileType));
             return _extensions[i];
         }

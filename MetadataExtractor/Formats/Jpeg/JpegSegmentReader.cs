@@ -1,32 +1,9 @@
-﻿#region License
-//
-// Copyright 2002-2017 Drew Noakes
-// Ported from Java to C# by Yakov Danilov for Imazen LLC in 2014
-//
-//    Licensed under the Apache License, Version 2.0 (the "License");
-//    you may not use this file except in compliance with the License.
-//    You may obtain a copy of the License at
-//
-//        http://www.apache.org/licenses/LICENSE-2.0
-//
-//    Unless required by applicable law or agreed to in writing, software
-//    distributed under the License is distributed on an "AS IS" BASIS,
-//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//    See the License for the specific language governing permissions and
-//    limitations under the License.
-//
-// More information about this project is available at:
-//
-//    https://github.com/drewnoakes/metadata-extractor-dotnet
-//    https://drewnoakes.com/code/exif/
-//
-#endregion
+﻿// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using JetBrains.Annotations;
 using MetadataExtractor.IO;
 
 namespace MetadataExtractor.Formats.Jpeg
@@ -57,11 +34,10 @@ namespace MetadataExtractor.Formats.Jpeg
         /// <param name="segmentTypes">the set of JPEG segments types that are to be returned. If this argument is <c>null</c> then all found segment types are returned.</param>
         /// <exception cref="JpegProcessingException"/>
         /// <exception cref="IOException"/>
-        [NotNull]
-        public static IEnumerable<JpegSegment> ReadSegments([NotNull] string filePath, [CanBeNull] ICollection<JpegSegmentType> segmentTypes = null)
+        public static IEnumerable<JpegSegment> ReadSegments(string filePath, ICollection<JpegSegmentType>? segmentTypes = null)
         {
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                return ReadSegments(new SequentialStreamReader(stream), segmentTypes).ToList();
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return ReadSegments(new SequentialStreamReader(stream), segmentTypes).ToList();
         }
 
         /// <summary>
@@ -74,8 +50,7 @@ namespace MetadataExtractor.Formats.Jpeg
         /// <param name="segmentTypes">the set of JPEG segments types that are to be returned. If this argument is <c>null</c> then all found segment types are returned.</param>
         /// <exception cref="JpegProcessingException"/>
         /// <exception cref="IOException"/>
-        [NotNull]
-        public static IEnumerable<JpegSegment> ReadSegments([NotNull] SequentialReader reader, [CanBeNull] ICollection<JpegSegmentType> segmentTypes = null)
+        public static IEnumerable<JpegSegment> ReadSegments(SequentialReader reader, ICollection<JpegSegmentType>? segmentTypes = null)
         {
             if (!reader.IsMotorolaByteOrder)
                 throw new JpegProcessingException("Must be big-endian/Motorola byte order.");

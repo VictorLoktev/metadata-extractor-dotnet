@@ -1,4 +1,5 @@
-using JetBrains.Annotations;
+// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -65,7 +66,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the aircraft, at which this image was captured.
         /// </summary>
         /// <returns>The x speed of the aircraft for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetAircraftSpeedX() => this.TryGetSingle(TagSpeedX, out var value) ? value : (float?)null;
 
         /// <summary>
@@ -73,7 +73,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the aircraft, at which this image was captured.
         /// </summary>
         /// <returns>The y speed of the aircraft for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetAircraftSpeedY() => this.TryGetSingle(TagSpeedY, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -81,7 +80,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the aircraft, at which this image was captured.
         /// </summary>
         /// <returns>The z speed of the aircraft for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetAircraftSpeedZ() => this.TryGetSingle(TagSpeedZ, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -89,7 +87,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the aircraft, at which this image was captured.
         /// </summary>
         /// <returns>The pitch of the aircraft for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetAircraftPitch() => this.TryGetSingle(TagAircraftPitch, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -97,7 +94,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the aircraft, at which this image was captured.
         /// </summary>
         /// <returns>The yaw of the aircraft for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetAircraftYaw() => this.TryGetSingle(TagAircraftYaw, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -105,7 +101,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the aircraft, at which this image was captured.
         /// </summary>
         /// <returns>The roll of the aircraft for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetAircraftRoll() => this.TryGetSingle(TagAircraftRoll, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -113,7 +108,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the camera, at which this image was captured.
         /// </summary>
         /// <returns>The pitch of the camera for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetCameraPitch() => this.TryGetSingle(TagCameraPitch, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -121,7 +115,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the camera, at which this image was captured.
         /// </summary>
         /// <returns>The yaw of the camera for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetCameraYaw() => this.TryGetSingle(TagCameraYaw, out var value) ? (float?)value : null;
 
         /// <summary>
@@ -129,7 +122,6 @@ namespace MetadataExtractor.Formats.Exif.Makernotes
         /// of the camera, at which this image was captured.
         /// </summary>
         /// <returns>The roll of the camera for this image, if possible, otherwise <c>null</c>.</returns>
-        [CanBeNull]
         public float? GetCameraRoll() => this.TryGetSingle(TagCameraRoll, out var value) ? (float?)value : null;
     }
 }

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Text;
+﻿// Copyright (c) Drew Noakes and contributors. All Rights Reserved. Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-using JetBrains.Annotations;
+using System;
+using System.Text;
 
 namespace MetadataExtractor
 {
@@ -16,24 +16,22 @@ namespace MetadataExtractor
     /// The introduction of this type allows full transparency and control over the use of string data extracted
     /// by the library during the read phase.
     /// </remarks>
-    public struct StringValue : IConvertible
+    public readonly struct StringValue : IConvertible
     {
         /// <summary>
         /// The encoding used when decoding a <see cref="StringValue"/> that does not specify its encoding.
         /// </summary>
         public static readonly Encoding DefaultEncoding = Encoding.UTF8;
 
-        public StringValue([NotNull] byte[] bytes, Encoding encoding = null)
+        public StringValue(byte[] bytes, Encoding? encoding = null)
         {
             Bytes = bytes;
             Encoding = encoding;
         }
 
-        [NotNull]
         public byte[] Bytes { get; }
 
-        [CanBeNull]
-        public Encoding Encoding { get; }
+        public Encoding? Encoding { get; }
 
         #region IConvertible
 
@@ -43,7 +41,7 @@ namespace MetadataExtractor
 
         double IConvertible.ToDouble(IFormatProvider provider) => double.Parse(ToString());
 
-        decimal IConvertible.ToDecimal(IFormatProvider prodiver) => decimal.Parse(ToString());
+        decimal IConvertible.ToDecimal(IFormatProvider provider) => decimal.Parse(ToString());
 
         float IConvertible.ToSingle(IFormatProvider provider) => float.Parse(ToString());
 
@@ -72,10 +70,10 @@ namespace MetadataExtractor
             catch(Exception)
             {
                 long val = 0;
-                foreach(var b in Bytes)
+                foreach (var b in Bytes)
                 {
-                    val = val << 8;
-                    val += b & 0xff;
+                    val <<= 8;
+                    val += b;
                 }
                 return (int)val;
             }
@@ -87,7 +85,23 @@ namespace MetadataExtractor
 
         ushort IConvertible.ToUInt16(IFormatProvider provider) => ushort.Parse(ToString());
 
-        uint IConvertible.ToUInt32(IFormatProvider provider) => uint.Parse(ToString());
+        uint IConvertible.ToUInt32(IFormatProvider provider)
+        {
+            try
+            {
+                return uint.Parse(ToString());
+            }
+            catch(Exception)
+            {
+                ulong val = 0;
+                foreach (var b in Bytes)
+                {
+                    val = val << 8;
+                    val += b;
+                }
+                return (uint)val;
+            }
+        }
 
         ulong IConvertible.ToUInt64(IFormatProvider provider) => ulong.Parse(ToString());
 
@@ -99,8 +113,7 @@ namespace MetadataExtractor
 
         public override string ToString() => ToString(Encoding ?? DefaultEncoding);
 
-        [NotNull]
-        public string ToString([NotNull] Encoding encoder) => encoder.GetString(Bytes, 0, Bytes.Length);
+        public string ToString(Encoding encoder) => encoder.GetString(Bytes, 0, Bytes.Length);
 
         #endregion
     }
